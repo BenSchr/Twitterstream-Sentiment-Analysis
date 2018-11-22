@@ -16,4 +16,4 @@ Twitter Modules
 
 # Base Architecture
 
-</br><img src="TwitterstreamArch.jpg" width="500" height=auto />
+</br><img src="TwitterstreamArch.jpg" width="800" height=auto />
