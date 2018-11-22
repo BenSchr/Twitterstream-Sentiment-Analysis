@@ -17,10 +17,10 @@ def getSqlContextInstance(sparkContext):
         globals()['sqlContextSingletonInstance'] = SQLContext(sparkContext)
     return globals()['sqlContextSingletonInstance']
 
-def dosentiment(x):
+def dosentiment(tweet):
     scores = dict([('pos', 0), ('neu', 0), ('neg', 0), ('compound', 0)])
     sid = SentimentIntensityAnalyzer()
-    ss = sid.polarity_scores(x)
+    ss = sid.polarity_scores(tweet)
     for k in sorted(ss):
         scores[k] += ss[k]
 
