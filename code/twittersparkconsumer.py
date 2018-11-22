@@ -51,7 +51,7 @@ def process(time, rdd):
 if __name__ == "__main__":
     sc = SparkContext(appName="PythonStreaming")
     ssc = StreamingContext(sc, 3)
-    topic = ["test"]
+  
     kafkaStream = KafkaUtils.createStream(ssc, "YourHostWithKafka:2181", "consumer-group", {"tweets": 1})
     lines = kafkaStream.map(lambda x: json.loads(x[1]))
 
