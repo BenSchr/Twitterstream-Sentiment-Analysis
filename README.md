@@ -45,25 +45,29 @@ You can find the code here [twitterstreamproducer.py](/code/twitterstreamproduce
 At first we define a StdOutListener who listenes on the Stream the function *on_data()* defines the part what we want to do with every tweet we get. The function *cleantweet()* cleans every tweet by just extracting the user, date and the text.
 After this the tweet is send to the topic "tweets".
 
-`class StdOutListener(StreamListener):
+```python
+class StdOutListener(StreamListener):
     def on_data(self, data):
         newdata = cleantweet(data)
         producer.send("tweets", newdata)
         print(newdata)
         return True
     def on_error(self, status):
-        print (status)`
+        print (status)
+```
         
 Together with the API-Token we give the Tweepy Stream object our StdOutListener and set a filter to some hashtag we want to track. That's it.
-        
-`producer = KafkaProducer(bootstrap_servers='YourHostWithKafka:9092', 
+```python
+producer = KafkaProducer(bootstrap_servers='YourHostWithKafka:9092', 
     api_version=(0, 10, 1),
     value_serializer=lambda m: json.dumps(m).encode('ascii'))
+
 l = StdOutListener()
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 stream = Stream(auth, l,tweet_mode='extended')
-stream.filter(track=["#worldkidnessday"], languages=["en"])`
+stream.filter(track=["#worldkidnessday"], languages=["en"])
+```
 
 # Step 2/2 - Consume the tweets
 
@@ -73,17 +77,18 @@ The code of the second option you can find inside [twittersparkconsumer.py](/cod
 
 First of all we create a SparkContext with our appName, then we create the StreamingContext with the SparkContext an let it wait for 3 seconds to consume the next package of tweets. After that we use the StreamingContext to build a KafkaConsumer and for each RDD we get from the Stream we call the function *process()*.
 As long as we don't kill the process tis code will run to infinity (and beyond).
-
-`  sc = SparkContext(appName="PythonStreaming")
-   ssc = StreamingContext(sc, 3)
+```python
+sc = SparkContext(appName="PythonStreaming")
+ssc = StreamingContext(sc, 3)
   
-   kafkaStream = KafkaUtils.createStream(ssc, "YourHostWithKafka:2181", "consumer-group", {"tweets": 1})
-   lines = kafkaStream.map(lambda x: json.loads(x[1]))
+kafkaStream = KafkaUtils.createStream(ssc, "YourHostWithKafka:2181", "consumer-group", {"tweets": 1})
+lines = kafkaStream.map(lambda x: json.loads(x[1]))
 
-   lines.foreachRDD(process)
+lines.foreachRDD(process)
 
-   ssc.start()
-   ssc.awaitTermination()`
+ssc.start()
+ssc.awaitTermination()
+```
   
 Inside the *process()* function we process the tweets and for every tweet we call the *dosentiment()* function othergiving the the text of the tweet. The result of this function will added to the data as column "sentiment".
 
@@ -91,25 +96,29 @@ Inside the *process()* function we process the tweets and for every tweet we cal
  df = df.withColumn("sentiment",lit(udf_func(df.text)))`
  
 Inside the *dosentiment()* function we processing the text of the tweet with the SentimentAnalyzer of NLTK Vader, which gives us some scores other the positive,negative and neutral elements of the text and a calculated compoundscore from -1 (Negative) to 1 (Positive) and between. These information can be added returned to the tweetdata 
- 
-`def dosentiment(tweet):
+
+```python
+def dosentiment(tweet):
   scores = dict([('pos', 0), ('neu', 0), ('neg', 0), ('compound', 0)])
   sid = SentimentIntensityAnalyzer()
   ss = sid.polarity_scores(tweet)
   for k in sorted(ss):
       scores[k] += ss[k]
 
-  return json.dumps(scores`
+  return json.dumps(scores)
+ ```
       
 Still inside the *process()* function we can now send our result to elasticsearch and build a dashboard with kibana.
 The *sth2elastic()* function out of my [ownelastic.py](/code/ownelastic.py) will do the job for us but don't forget to config your Elastichost in this file.
 
-`results = df.toJSON().map(lambda j: json.loads(j)).collect()
- for result in results:
+```python
+results = df.toJSON().map(lambda j: json.loads(j)).collect()
+for result in results:
       result["date"]= datetime.strptime(result["date"],"%Y-%m-%d %H:%M:%S")
       result["sentiment"]=json.loads(result["sentiment"])
-      sth2elastic(results,"tweets","doc")`
- 
+      sth2elastic(results,"tweets","doc")
+```
+
 Now the Tweets are saved inside the "tweets" Index of Elasticsearch and you can build a dashboard that refreshes every few seconds.
 
 </br><img src="KibanaTwitterdashboard.PNG" width="800" height=auto />
