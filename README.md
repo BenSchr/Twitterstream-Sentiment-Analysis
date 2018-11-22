@@ -56,7 +56,9 @@ After this the tweet is send to the topic "tweets".
         
 Together with the API-Token we give the Tweepy Stream object our StdOutListener and set a filter to some hashtag we want to track. That's it.
         
-`producer = KafkaProducer(bootstrap_servers='YourHostWithKafka:9092', api_version=(0, 10, 1),value_serializer=lambda m: json.dumps(m).encode('ascii'))
+`producer = KafkaProducer(bootstrap_servers='YourHostWithKafka:9092', 
+    api_version=(0, 10, 1),
+    value_serializer=lambda m: json.dumps(m).encode('ascii'))
 l = StdOutListener()
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
