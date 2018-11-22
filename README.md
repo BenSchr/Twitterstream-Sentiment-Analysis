@@ -92,9 +92,11 @@ ssc.awaitTermination()
   
 Inside the *process()* function we process the tweets and for every tweet we call the *dosentiment()* function othergiving the the text of the tweet. The result of this function will added to the data as column "sentiment".
 
-`udf_func = udf(lambda x: dosentiment(x),returnType=StringType())
- df = df.withColumn("sentiment",lit(udf_func(df.text)))`
- 
+```python
+udf_func = udf(lambda x: dosentiment(x),returnType=StringType())
+df = df.withColumn("sentiment",lit(udf_func(df.text)))
+```
+
 Inside the *dosentiment()* function we processing the text of the tweet with the SentimentAnalyzer of NLTK Vader, which gives us some scores other the positive,negative and neutral elements of the text and a calculated compoundscore from -1 (Negative) to 1 (Positive) and between. These information can be added returned to the tweetdata 
 
 ```python
