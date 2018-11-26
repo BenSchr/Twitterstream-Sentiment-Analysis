@@ -1,5 +1,5 @@
 # Twitterstream Sentiment-Analysis with Kafka, Spark & Elasticsearch
-Reading the Twitterstream from the Twitter-API with Kafka and stream them into an Spark-Cluster to process it
+Reading the Twitterstream from the Twitter-API with Kafka and stream them into a Spark-Cluster to process it
 
 # Things you need
 
@@ -23,9 +23,9 @@ Let's dive into the Base Architecture to get an overview of the tools. It's not 
 At the beginning of our journey we have the twitterusers tweeting some posts with some hashtags. Roumors says there are ~6000 per second.
 Twitter offers an API to query them in past for some days or to read the livestream. 
 
-With a Kafka Producer written in Python (use Java or Scala if you want to) we listen the stream and after some cleaning we send the relevant part auf the tweet to a topic of the Kafkaserver. 
+With a Kafka Producer written in Python (use Java or Scala if you want to) we reading the stream and after some cleaning we send the relevant part of the tweet to a topic at the Kafkaserver. 
 
-While the Tweets getting send to the topic on the other side of the Kafkaqueue waits the Spark-Consumer. The Spark-Streaming libary has some KafkaUtils to collect the messages from the Kafkaserver and return them into Spark RDDs to process them.
+While the tweets getting send to the topic the Spark-Consumer waits at the other side of the Kafka Messagequeue. The Spark-Streaming libary has some KafkaUtils to collect the messages from the Kafkaserver and return them into Spark RDDs to process them.
 
 Inside the Spark-Consumer we let the NLTK Vader package doing the Sentiment-Magic and add that result to the data of the tweet.
 
@@ -42,7 +42,7 @@ To swim with the twitterstream we need some tools:
 
 You can find the code here [twitterstreamproducer.py](/code/twitterstreamproducer.py)
 
-At first we define a StdOutListener who listenes on the Stream the function *on_data()* defines the part what we want to do with every tweet we get. The function *cleantweet()* cleans every tweet by just extracting the user, date and the text.
+At first we define a StdOutListener who listenes on the Stream the function *on_data()* defines what we want to do with every tweet we get. The function *cleantweet()* cleans every tweet by just extracting the user, date and the text.
 After this the tweet is send to the topic "tweets".
 
 ```python
@@ -56,7 +56,7 @@ class StdOutListener(StreamListener):
         print (status)
 ```
         
-Together with the API-Token we give the Tweepy Stream object our StdOutListener and set a filter to some hashtag we want to track. That's it.
+Besides the API-Token we give the Tweepy Stream object our StdOutListener and set a filter to some hashtag we want to track. That's it.
 ```python
 producer = KafkaProducer(bootstrap_servers='YourHostWithKafka:9092', 
     api_version=(0, 10, 1),
@@ -90,7 +90,7 @@ ssc.start()
 ssc.awaitTermination()
 ```
   
-Inside the *process()* function we process the tweets and for every tweet we call the *dosentiment()* function othergiving the the text of the tweet. The result of this function will added to the data as column "sentiment".
+Inside the *process()* function we process the tweets and for every tweet we call the *dosentiment()* function othergiving the text of the tweet. The result of this function will added to the data as column "sentiment".
 
 ```python
 udf_func = udf(lambda x: dosentiment(x),returnType=StringType())
